@@ -5,6 +5,14 @@
     <script>
     var cellophane = new Cellophane();
     document.body.appendChild(cellophane.domElement);
+    var image = new Image();
+    image.src = './demo-src.jpg';
+    image.onload = function () {
+        var blendMode = Cellophane.BlendMode.NORMAL;
+        var layer = new Cellophane.Layer(image, blendMode);
+        cellophane.layers.push(layer);
+        cellophane.render();
+    };
     </script>
 </body>
 </html>
