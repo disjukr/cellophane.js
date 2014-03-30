@@ -38,7 +38,13 @@ var Cellophane = (function () {
       //
     };
     self.setLayerIndex = function (layer, index) {
-      //
+      var _index = layers.indexOf(layer);
+      if (_index === -1)
+        throw 'where is that layer?';
+      if (index < 0 || index >= layers.length)
+        throw 'out of range'
+      layers.splice(_index, 1);
+      layers.splice(index, 0, layer);
     };
     self.swapLayers = function (layer1, layer2) {
       var index1 = layers.indexOf(layer1);
