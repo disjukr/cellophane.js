@@ -24,7 +24,12 @@ var Cellophane = (function () {
       //
     };
     self.removeLayer = function (layer) {
-      //
+      var index = layers.indexOf(layer);
+      if (index === -1)
+        throw 'remove what?';
+      layer.cellophane = null;
+      layers.splice(index, 1);
+      return layer;
     };
     self.removeLayerAt = function (layer, index) {
       //
