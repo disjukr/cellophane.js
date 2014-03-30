@@ -10,7 +10,7 @@
     image.onload = function () {
         var blendMode = Cellophane.BlendMode.NORMAL;
         var layer = new Cellophane.Layer(image, blendMode);
-        cellophane.layers.push(layer);
+        cellophane.addLayer(layer);
         cellophane.render();
     };
     </script>

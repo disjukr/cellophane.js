@@ -15,7 +15,32 @@ var Cellophane = (function () {
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
     }
-    self.layers = [];
+    var layers = [];
+    self.addLayer = function (layer) {
+      layer.cellophane = self;
+      layers.push(layer);
+    };
+    self.addLayerAt = function (layer, index) {
+      //
+    };
+    self.removeLayer = function (layer) {
+      //
+    };
+    self.removeLayerAt = function (layer, index) {
+      //
+    };
+    self.setLayerIndex = function (layer, index) {
+      //
+    };
+    self.contains = function (layer) {
+      //
+    };
+    self.__defineGetter__('numLayers', function () {
+      return layers.length;
+    });
+    self.__defineGetter__('layers', function () {
+      return layers.concat();
+    });
   }
   Cellophane.BlendMode = {
     NORMAL: 'normal'
