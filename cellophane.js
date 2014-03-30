@@ -7,6 +7,9 @@ var Cellophane = (function () {
     var gl;
     self.domElement = document.createElement('canvas');
     gl = initWebGL(self.domElement);
+    self.__defineGetter__('gl', function () {
+      return gl;
+    });
     self.render = function () {
       // clear first
       gl.clearColor(0, 0, 0, 0);
@@ -23,6 +26,49 @@ var Cellophane = (function () {
     self.blendMode = blendMode || Cellophane.BlendMode.NORMAL;
     self.opacity = (typeof opacity === 'undefined') ? 1.0 : opacity;
     self.visibility = (typeof visibility === 'undefined') ? true : visibility;
+    var cellophane = null;
+    var texture = null;
+    Object.defineProperty(self, 'cellophane', {
+      get: function () {
+        return cellophane;
+      },
+      set: function (val) {
+        var gl;
+        if (cellophane === val) // no need to update
+          return;
+        if (cellophane != null) { // then, texture is not null
+          gl = cellophane.gl;
+          // deallocate texture
+          gl.deleteTexture(texture);
+          texture = null;
+          gl = null;
+          cellophane = null;
+        }
+        if (val != null) {
+          cellophane = val;
+          gl = cellophane.gl;
+          texture = gl.createTexture();
+          gl.bindTexture(gl.TEXTURE_2D, texture);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, content);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+          gl.bindTexture(gl.TEXTURE_2D, null);
+        }
+      }
+    });
+    self.__defineGetter__('texture', function () {
+      return texture;
+    });
+    self.update = function () {
+      if (cellophane == null)
+        return;
+      var gl = cellophane.gl;
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, content);
+      gl.bindTexture(gl.TEXTURE_2D, null);
+    };
   };
   function prepareShader(gl, source, vertex) {
     var shaderType = vertex ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER;
