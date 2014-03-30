@@ -34,8 +34,13 @@ var Cellophane = (function () {
       layers.splice(index, 1);
       return layer;
     };
-    self.removeLayerAt = function (layer, index) {
-      //
+    self.removeLayerAt = function (index) {
+      if (index < 0 || index >= layers.length)
+        throw 'out of range';
+      var layer = layers[index];
+      layer.cellophane = null;
+      layers.splice(index, 1);
+      return layer;
     };
     self.setLayerIndex = function (layer, index) {
       var _index = layers.indexOf(layer);
