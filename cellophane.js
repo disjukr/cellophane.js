@@ -19,9 +19,12 @@ var Cellophane = (function () {
     self.addLayer = function (layer) {
       layer.cellophane = self;
       layers.push(layer);
+      return layer;
     };
     self.addLayerAt = function (layer, index) {
-      //
+      layer.cellophane = self;
+      layers.splice(index, 0, layer);
+      return layer;
     };
     self.removeLayer = function (layer) {
       var index = layers.indexOf(layer);
