@@ -33,7 +33,7 @@ var Cellophane = (function () {
       //
     };
     self.contains = function (layer) {
-      //
+      return layers.indexOf(layer) !== -1;
     };
     self.__defineGetter__('numLayers', function () {
       return layers.length;
@@ -74,7 +74,9 @@ var Cellophane = (function () {
           gl = cellophane.gl;
           texture = gl.createTexture();
           gl.bindTexture(gl.TEXTURE_2D, texture);
-          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, content);
+          if (self.content != null) {
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, content);
+          }
           gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
           gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
           gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -87,7 +89,7 @@ var Cellophane = (function () {
       return texture;
     });
     self.update = function () {
-      if (cellophane == null)
+      if (cellophane == null || self.content == null)
         return;
       var gl = cellophane.gl;
       gl.bindTexture(gl.TEXTURE_2D, texture);
