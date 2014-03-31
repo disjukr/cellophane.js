@@ -1,19 +1,29 @@
 var Cellophane = (function () {
-  var vertexShaderSource = [
-    ''
-  ].join('\n');
   function Cellophane() {
     var self = this;
-    var gl;
     self.domElement = document.createElement('canvas');
-    gl = initWebGL(self.domElement);
+    var gl = initWebGL(self.domElement);
+    var verticeBuffer = initBuffer(gl);
+    var shaderPrograms = initShaders(gl);
     self.__defineGetter__('gl', function () {
       return gl;
     });
     self.render = function () {
-      // clear first
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
+      layers.forEach(function (layer) {
+        layer.cellophane = self;
+        renderLayer(layer);
+      });
+    }
+    function renderLayer(layer) {
+      var shaderProgram = shaderPrograms[layer.blendMode];
+      var vertexLocation = gl.getAttribLocation(shaderProgram, 'vertex');
+      gl.useProgram(shaderProgram);
+      gl.bindBuffer(gl.ARRAY_BUFFER, verticeBuffer);
+      gl.enableVertexAttribArray(vertexLocation);
+      gl.vertexAttribPointer(vertexLocation, 2, gl.FLOAT, false, 0, 0);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
     var layers = [];
     self.addLayer = function (layer) {
@@ -124,14 +134,63 @@ var Cellophane = (function () {
       gl.bindTexture(gl.TEXTURE_2D, null);
     };
   };
-  function prepareShader(gl, source, vertex) {
+  var vertices = [
+    0.0, 0.0,
+    1.0, 0.0,
+    0.0, 1.0,
+    1.0, 1.0
+  ];
+  var vertexShaderSource = [
+    'attribute vec2 vertex;',
+    'varying highp vec2 textureCoord;',
+    'void main() {',
+    '  gl_Position = vec4(vertex * 2.0 - 1.0, 0.0, 1.0);',
+    '  textureCoord = vertex;',
+    '}'
+  ].join('\n');
+  var fragmentShaderSources = {};
+  fragmentShaderSources[Cellophane.BlendMode.NORMAL] = [
+    'varying highp vec2 textureCoord;',
+    'void main() {',
+    '  gl_FragColor = vec4(textureCoord, 0.9, 1);',
+    '}'
+  ].join('\n');
+  function initShaders(gl) {
+    var programs = {};
+    var vertexShader = compileShader(gl, vertexShaderSource, true);
+    for (var source in fragmentShaderSources) {
+      if (!fragmentShaderSources.hasOwnProperty(source))
+        return;
+      var program = gl.createProgram();
+      var fragmentShaderSource = fragmentShaderSources[source];
+      var fragmentShader = compileShader(gl, fragmentShaderSource);
+      gl.attachShader(program, vertexShader);
+      gl.attachShader(program, fragmentShader);
+      gl.linkProgram(program);
+      programs[source] = program;
+    }
+    return programs;
+  }
+  function compileShader(gl, source, vertex) {
     var shaderType = vertex ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER;
     var shader = gl.createShader(shaderType);
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
-      throw gl.getShaderInfoLog(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      throw [
+        'shader compile failed:',
+        source,
+        gl.getShaderInfoLog(shader)
+      ].join('\n');
+    }
     return shader;
+  }
+  function initBuffer(gl) {
+    var verticeBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, verticeBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    return verticeBuffer;
   }
   function initWebGL(canvas) {
     var gl = null;
