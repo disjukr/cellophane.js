@@ -19,10 +19,17 @@ var Cellophane = (function () {
     function renderLayer(layer) {
       var shaderProgram = shaderPrograms[layer.blendMode];
       var vertexLocation = gl.getAttribLocation(shaderProgram, 'vertex');
+      // shader
       gl.useProgram(shaderProgram);
+      // vertex
       gl.bindBuffer(gl.ARRAY_BUFFER, verticeBuffer);
       gl.enableVertexAttribArray(vertexLocation);
       gl.vertexAttribPointer(vertexLocation, 2, gl.FLOAT, false, 0, 0);
+      // texture
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, layer.texture);
+      gl.uniform1i(gl.getUniformLocation(shaderProgram, 'src'), 0);
+      // draw
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
     var layers = [];
@@ -111,6 +118,7 @@ var Cellophane = (function () {
           gl = cellophane.gl;
           texture = gl.createTexture();
           gl.bindTexture(gl.TEXTURE_2D, texture);
+          gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
           if (self.content != null) {
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, content);
           }
@@ -150,9 +158,10 @@ var Cellophane = (function () {
   ].join('\n');
   var fragmentShaderSources = {};
   fragmentShaderSources[Cellophane.BlendMode.NORMAL] = [
+    'uniform sampler2D src;',
     'varying highp vec2 textureCoord;',
     'void main() {',
-    '  gl_FragColor = vec4(textureCoord, 0.9, 1);',
+    '  gl_FragColor = texture2D(src, textureCoord);',
     '}'
   ].join('\n');
   function initShaders(gl) {
